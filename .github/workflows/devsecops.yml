@@ -66,3 +66,27 @@ jobs:
           IMAGE_URI=${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_URI
           docker push $IMAGE_URI
+       
+      - name: Deploy to EC2 via SSM
+        env:
+          INSTANCE_ID: i-0aebd36eb207a38d4
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids $INSTANCE_ID \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["sudo -u ec2-user -H /home/ec2-user/deploy.sh"]' \
+            --query "Command.CommandId" --output text)
+          echo "SSM command: $CMD_ID"
+          for i in $(seq 1 40); do
+            STATUS=$(aws ssm get-command-invocation --command-id $CMD_ID --instance-id $INSTANCE_ID --query Status --output text 2>/dev/null || echo Pending)
+            echo "Status: $STATUS"
+            case $STATUS in
+              Success) break ;;
+              Failed|Cancelled|TimedOut)
+                aws ssm get-command-invocation --command-id $CMD_ID --instance-id $INSTANCE_ID --query StandardOutputContent --output text
+                aws ssm get-command-invocation --command-id $CMD_ID --instance-id $INSTANCE_ID --query StandardErrorContent --output text
+                exit 1 ;;
+            esac
+            sleep 8
+          done
+          aws ssm get-command-invocation --command-id $CMD_ID --instance-id $INSTANCE_ID --query StandardOutputContent --output text
