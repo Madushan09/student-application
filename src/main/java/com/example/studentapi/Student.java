@@ -1,9 +1,11 @@
 package com.example.studentapi;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
+@JsonPropertyOrder({"id", "name", "email", "course"})
 public class Student {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
