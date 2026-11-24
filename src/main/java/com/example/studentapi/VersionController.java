@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class VersionController {
     @GetMapping("/api/version")
     public String version() {
-        return "Hi Manusha";
+        return "<h1> Hello World!! </h1>";
     }
 }
