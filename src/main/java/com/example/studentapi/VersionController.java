@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class VersionController {
     @GetMapping("/api/version")
     public String version() {
-        return "I Am the kingssh -i "C:\Users\WMChanaka\Desktop\New folder (2)\lab-key.pem" ec2-user@16.179.117.43";
+        return "Hi Manusha";
     }
 }
